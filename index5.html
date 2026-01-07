@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Workbench | Epistemic Integrity Tools | OpenSauce</title>
+  <meta name="description" content="Analyze AI outputs with The Wrench framework. Trust auditing, conversation forensics, and prompt integrity tools based on the S.A.U.C.E. Doctrine.">
+  <meta property="og:title" content="The Workbench | OpenSauce S.A.U.C.E. Doctrine">
+  <meta property="og:description" content="Epistemic integrity tools for evaluating AI system reliability.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://workbench.opensauce.ai">
+  <link rel="canonical" href="https://workbench.opensauce.ai">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, sans-serif; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    textarea:focus { border-color: #6366f1 !important; outline: none; }
+    button:active { transform: scale(0.98); }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // Canonical epistemic text - VERBATIM, do not modify
+    const CANONICAL_EPISTEMIC_TEXT = `What "Epistemic" Means (In Plain Terms)
+
+Most people have never heard the word epistemic, and that's fine — it simply has to do with knowledge: how it's formed, how we come to rely on it, and how it changes as new information becomes available. Knowledge isn't fixed; we learn, and that learning changes the knowledge we act on. Think of a map or navigation app: this year it shows the roads and neighborhoods that exist today. Next year there may be new streets, new areas, or better data. The earlier map may have been accurate, incomplete, outdated, or even wrong — but in any case, it reflected what was known at the time. As conditions change, the picture needs to change too. An epistemic system respects that process. It doesn't freeze knowledge in place or skew the picture for convenience or engagement; it preserves how understanding evolves, so people can see what they're actually relying on.
+
+Self-Applying Disclaimer
+
+Disclaimer: This explanation follows the same rules it describes. It reflects the best understanding available through the lenses we're using right now. As new perspectives emerge, better tools are applied, or previously missed information comes into view, this framing may change. Even a spyglass can introduce distortion — a scratch, a misalignment, a few degrees off — not enough to notice at first, but enough to shift the path over distance. That doesn't invalidate the view; it reminds us to keep checking the lens.
+
+In short: Knowledge depends on perspective and tools. When either changes, the picture can sharpen, shift, or correct itself — and systems that handle knowledge must allow for that movement.
+
+An epistemic system that does not allow revision of its own framing is no longer epistemic.`;
+
+    // Domain-specific granularity modes configuration
+    // TODO: Future modes can be added here (e.g., 'Legal Documents', 'Medical Analysis', 'Code Review')
+    const granularityModes = {
+      'AI Conversations': {
+        label: 'AI Conversations',
+        placeholder: 'Paste AI conversation or output here for forensic analysis...',
+        patternExamples: {
+          'Hedging Cascade': 'Excessive hedging may indicate low confidence or confabulation (e.g., "might", "possibly", "appears to be")',
+          'Definitive Overreach': 'Overconfident language on uncertain topics signals miscalibration (e.g., "definitely", "absolutely", "guaranteed")',
+          'Citation Vacuum': 'Vague appeals to authority without specific sources (e.g., "studies show", "experts say", "research indicates")',
+          'Fabrication Risk Phrases': 'Specific claims that are common confabulation points (e.g., "in 1995", "won the Nobel Prize", "invented by")',
+          'Contradiction Markers': 'May indicate self-correction or inconsistency (e.g., "however", "but actually", "on the other hand")',
+          'Failure-Mode Disclosure': 'Meta-statements acknowledging AI limitations (e.g., "as of my training", "I cannot verify", "my knowledge cutoff")',
+          'Conclusion Precedes Argument': 'May indicate conclusion-first reasoning (e.g., "therefore", "clearly", "obviously")',
+          'Non-Sequitur Risk': 'Logical bridge phrases that may not be substantiated (e.g., "this proves", "as a result", "consequently")',
+          'Scope Slippage': 'Universal quantifiers that may indicate illicit generalization (e.g., "all", "every", "always", "never")',
+          'Circular Reasoning Risk': 'Self-referential phrases that may mask tautological reasoning (e.g., "because it is", "by definition", "inherently")'
+        },
+        bannerText: 'Patterns are signals, not sentences. This tool surfaces stress points for human interpretation — it does not declare outputs true, false, or failed.'
+      },
+      'Political Claims & Debates': {
+        label: 'Political Claims & Debates',
+        placeholder: 'Paste political claims, debate transcripts, or policy statements here for forensic analysis...',
+        patternExamples: {
+          'Hedging Cascade': 'Excessive hedging may indicate political equivocation or uncertainty about policy impacts',
+          'Definitive Overreach': 'Overconfident claims about complex social/political outcomes may signal ideological bias or oversimplification',
+          'Citation Vacuum': 'Vague appeals to authority without specific sources or data (e.g., "polls show", "experts agree", "history proves")',
+          'Fabrication Risk Phrases': 'Specific claims that are common political fabrication points (e.g., "in the 1980s", "passed unanimously", "historic levels of")',
+          'Contradiction Markers': 'May indicate policy inconsistency or position shifting (e.g., "however", "that said", "on the other hand")',
+          'Failure-Mode Disclosure': 'Rare in political discourse — when present, may indicate admission of policy limitations or data gaps',
+          'Conclusion Precedes Argument': 'May indicate ideology-first reasoning rather than evidence-based policy formation',
+          'Non-Sequitur Risk': 'Policy claims that connect causes to effects without substantiated intermediate steps',
+          'Scope Slippage': 'Universal claims about voter behavior, economic outcomes, or social trends that ignore contextual variables',
+          'Circular Reasoning Risk': 'Self-referential political arguments (e.g., "because democracy demands it", "by definition of conservatism")'
+        },
+        bannerText: 'Patterns are signals, not verdicts. This tool surfaces rhetorical patterns for human interpretation — it does not judge political positions or declare claims true/false.'
+      },
+      'News & Media Articles': {
+        label: 'News & Media Articles',
+        placeholder: 'Paste news articles, press releases, or media content here for forensic analysis...',
+        patternExamples: {
+          'Hedging Cascade': 'Excessive hedging may indicate journalistic uncertainty or editorial caution about breaking developments',
+          'Definitive Overreach': 'Overconfident language about ongoing events or investigations may signal premature conclusions or bias',
+          'Citation Vacuum': 'Vague appeals to authority without specific sourcing (e.g., "sources say", "officials claim", "reports indicate")',
+          'Fabrication Risk Phrases': 'Specific claims that are common journalistic fabrication points (e.g., "breaking news", "exclusive", "bombshell report")',
+          'Contradiction Markers': 'May indicate corrections, updates, or evolving story developments (e.g., "however", "but now", "contrary to earlier reports")',
+          'Failure-Mode Disclosure': 'Rare in journalism — when present, may indicate admission of reporting limitations or access issues',
+          'Conclusion Precedes Argument': 'May indicate advocacy journalism or opinion presented as fact',
+          'Non-Sequitur Risk': 'Coverage that connects events to outcomes without substantiated causal links',
+          'Scope Slippage': 'Universal claims about public opinion, market reactions, or social movements that ignore regional/contextual differences',
+          'Circular Reasoning Risk': 'Self-referential media narratives (e.g., "because journalism demands it", "by definition of fake news")'
+        },
+        bannerText: 'Patterns are signals, not ratings. This tool surfaces journalistic patterns for human interpretation — it does not assess media bias or declare stories true/false.'
+      }
+    };
+
+    const WrenchWorkbench = () => {
+      const [activeTab, setActiveTab] = useState('dashboard');
+      const [assessmentAnswers, setAssessmentAnswers] = useState({});
+      const [conversationText, setConversationText] = useState('');
+      const [forensicsResults, setForensicsResults] = useState(null);
+      const [selectedMode, setSelectedMode] = useState('AI Conversations');
+      const [promptComponents, setPromptComponents] = useState({
+        context: '',
+        constraints: '',
+        verification: '',
+        fallback: ''
+      });
+
+      const assessmentFramework = [
+        {
+          category: 'Consistency Verification',
+          icon: '⚙️',
+          color: '#6366f1',
+          questions: [
+            { id: 'c1', text: 'Does the AI maintain consistent positions across the conversation?', weight: 3 },
+            { id: 'c2', text: 'Are technical claims internally coherent?', weight: 3 },
+            { id: 'c3', text: 'Does it acknowledge previous statements when relevant?', weight: 2 },
+            { id: 'c4', text: 'Are quantitative claims consistent throughout?', weight: 3 }
+          ]
+        },
+        {
+          category: 'Uncertainty Calibration',
+          icon: '📊',
+          color: '#8b5cf6',
+          questions: [
+            { id: 'u1', text: 'Does the AI express appropriate uncertainty for speculative claims?', weight: 3 },
+            { id: 'u2', text: 'Are confidence levels proportional to evidence strength?', weight: 3 },
+            { id: 'u3', text: 'Does it distinguish between fact and inference?', weight: 2 },
+            { id: 'u4', text: 'Are hedging words used appropriately (not excessively or insufficiently)?', weight: 2 }
+          ]
+        },
+        {
+          category: 'Source Integrity',
+          icon: '🔍',
+          color: '#06b6d4',
+          questions: [
+            { id: 's1', text: 'Does it cite or reference sources when making factual claims?', weight: 2 },
+            { id: 's2', text: 'Are claimed sources verifiable and real?', weight: 3 },
+            { id: 's3', text: 'Does it avoid fabricating quotes or statistics?', weight: 3 },
+            { id: 's4', text: 'Is there transparency about knowledge limitations?', weight: 2 }
+          ]
+        },
+        {
+          category: 'Structural Coherence',
+          icon: '🏗️',
+          color: '#10b981',
+          questions: [
+            { id: 'st1', text: 'Do conclusions follow logically from premises?', weight: 3 },
+            { id: 'st2', text: 'Are complex topics broken down systematically?', weight: 2 },
+            { id: 'st3', text: 'Is reasoning transparent and traceable?', weight: 3 },
+            { id: 'st4', text: 'Does it avoid circular reasoning or tautologies?', weight: 2 }
+          ]
+        },
+        {
+          category: 'Failure Mode Awareness',
+          icon: '⚠️',
+          color: '#f59e0b',
+          questions: [
+            { id: 'f1', text: 'Does it acknowledge when questions are outside its capability?', weight: 3 },
+            { id: 'f2', text: 'Are potential errors or limitations proactively mentioned?', weight: 2 },
+            { id: 'f3', text: 'Does it suggest verification for high-stakes information?', weight: 3 },
+            { id: 'f4', text: 'Is there appropriate deference to human expertise when needed?', weight: 2 }
+          ]
+        }
+      ];
+
+      const forensicPatterns = [
+        {
+          name: 'Hedging Cascade',
+          pillar: 2,
+          pillarName: 'Uncertainty Calibration',
+          pattern: /\b(might|maybe|possibly|perhaps|could be|it seems|appears to|likely|probably)\b/gi,
+          severity: 'warning',
+          description: 'Excessive hedging may indicate low confidence or confabulation',
+          version: '1.0'
+        },
+        {
+          name: 'Definitive Overreach',
+          pillar: 2,
+          pillarName: 'Uncertainty Calibration',
+          pattern: /\b(definitely|certainly|absolutely|always|never|guaranteed|undoubtedly|without question)\b/gi,
+          severity: 'alert',
+          description: 'Overconfident language on uncertain topics signals miscalibration',
+          version: '1.0'
+        },
+        {
+          name: 'Citation Vacuum',
+          pillar: 3,
+          pillarName: 'Source Integrity',
+          pattern: /\b(studies show|research indicates|experts say|according to|it is known that|scientists have found)\b/gi,
+          severity: 'warning',
+          description: 'Vague appeals to authority without specific sources',
+          version: '1.0'
+        },
+        {
+          name: 'Fabrication Risk Phrases',
+          pillar: 3,
+          pillarName: 'Source Integrity',
+          pattern: /\b(in \d{4},|was founded in|published in|won the|received the|invented the)\b/gi,
+          severity: 'alert',
+          description: 'Specific claims that are common confabulation points',
+          version: '1.0'
+        },
+        {
+          name: 'Contradiction Markers',
+          pillar: 1,
+          pillarName: 'Consistency Verification',
+          pattern: /\b(however|but actually|on the other hand|that said|although I said|contrary to)\b/gi,
+          severity: 'info',
+          description: 'May indicate self-correction or inconsistency — requires contextual interpretation',
+          version: '1.0'
+        },
+        {
+          name: 'Failure-Mode Disclosure',
+          pillar: 5,
+          pillarName: 'Failure Mode Awareness',
+          pattern: /\b(as of my|I don't have access|I cannot browse|my training|I was trained|I cannot verify)\b/gi,
+          severity: 'positive',
+          description: 'Meta-statements acknowledging AI limitations — typically a positive epistemic behavior',
+          version: '2.0'
+        },
+        {
+          name: 'Conclusion Precedes Argument',
+          pillar: 4,
+          pillarName: 'Structural Coherence',
+          pattern: /\b(therefore|thus|clearly|obviously|it follows that|this means)\b/gi,
+          severity: 'info',
+          description: 'May indicate conclusion-first reasoning — check if premises actually precede',
+          version: '2.0'
+        },
+        {
+          name: 'Non-Sequitur Risk',
+          pillar: 4,
+          pillarName: 'Structural Coherence',
+          pattern: /\b(which means that|this proves|as a result|consequently)\b/gi,
+          severity: 'info',
+          description: 'Logical bridge phrases — verify the connection is substantiated',
+          version: '2.0'
+        },
+        {
+          name: 'Scope Slippage',
+          pillar: 4,
+          pillarName: 'Structural Coherence',
+          pattern: /\b(all|every|none|no one|everyone|always|never|in general|universally)\b/gi,
+          severity: 'warning',
+          description: 'Universal quantifiers may indicate illicit generalization from specific examples',
+          version: '2.0'
+        },
+        {
+          name: 'Circular Reasoning Risk',
+          pillar: 4,
+          pillarName: 'Structural Coherence',
+          pattern: /\b(because it is|by definition|essentially|inherently|as explained|as mentioned)\b/gi,
+          severity: 'info',
+          description: 'Self-referential phrases that may mask tautological reasoning',
+          version: '2.0'
+        }
+      ];
+
+      const trustScore = useMemo(() => {
+        const answered = Object.keys(assessmentAnswers).length;
+        if (answered === 0) return null;
+
+        let totalWeight = 0;
+        let earnedScore = 0;
+
+        assessmentFramework.forEach(cat => {
+          cat.questions.forEach(q => {
+            if (assessmentAnswers[q.id] !== undefined) {
+              totalWeight += q.weight;
+              earnedScore += (assessmentAnswers[q.id] / 4) * q.weight;
+            }
+          });
+        });
+
+        return totalWeight > 0 ? Math.round((earnedScore / totalWeight) * 100) : 0;
+      }, [assessmentAnswers]);
+
+      const runForensics = () => {
+        if (!conversationText.trim()) return;
+
+        const results = forensicPatterns.map(pattern => {
+          const matches = conversationText.match(pattern.pattern) || [];
+          return { ...pattern, matches, count: matches.length };
+        }).filter(r => r.count > 0);
+
+        const wordCount = conversationText.split(/\s+/).length;
+        const overallRisk = results.reduce((acc, r) => {
+          if (r.severity === 'positive') return acc;
+          const factor = r.severity === 'alert' ? 3 : r.severity === 'warning' ? 2 : 1;
+          return acc + (r.count * factor);
+        }, 0);
+
+        setForensicsResults({
+          patterns: results,
+          wordCount,
+          riskScore: Math.min(100, Math.round((overallRisk / wordCount) * 500)),
+          timestamp: new Date().toISOString()
+        });
+      };
+
+      // ============================================================
+      // EXPORT OBSERVATION REPORT - Markdown (no external dependencies)
+      // ============================================================
+      // CORE LENS PAYMENT GATE: Add payment check here when $7 tier is ready
+      // Example: if (!userHasCoreLens) { showPaymentModal(); return; }
+      // ============================================================
+      const exportObservationReport = () => {
+        if (!forensicsResults) return;
+
+        // CORE LENS GATE PLACEHOLDER:
+        // const userHasCoreLens = checkPaymentStatus(); // Future implementation
+        // if (!userHasCoreLens) { alert('Upgrade to Core Lens ($7) to export reports'); return; }
+
+        const textPreview = conversationText.length > 500
+          ? conversationText.slice(0, 500) + '...'
+          : conversationText;
+
+        const severityEmoji = (sev) => {
+          if (sev === 'positive') return '✅';
+          if (sev === 'alert') return '🔴';
+          if (sev === 'warning') return '🟡';
+          return '🔵';
+        };
+
+        let report = `# OpenSauce Observation Report
+
+**Generated:** ${new Date().toLocaleString()}
+**Tool:** The Workbench v2.2 | OpenSauce S.A.U.C.E. Doctrine
+**Analysis Mode:** ${selectedMode}
+**URL:** https://workbench.opensauce.ai
+
+---
+
+## Epistemic Foundation
+
+${CANONICAL_EPISTEMIC_TEXT}
+
+---
+
+## Analysis Summary
+
+| Metric | Value |
+|--------|-------|
+| **Word Count** | ${forensicsResults.wordCount} |
+| **Patterns Found** | ${forensicsResults.patterns.length} |
+| **Attention Score** | ${forensicsResults.riskScore}/100 |
+
+---
+
+## Analyzed Text (Preview)
+
+> ${textPreview.split('\n').join('\n> ')}
+
+---
+
+## Detected Patterns
+
+`;
+
+        if (forensicsResults.patterns.length === 0) {
+          report += `*No notable patterns detected.*\n\n`;
+        } else {
+          forensicsResults.patterns.forEach(p => {
+            report += `### ${severityEmoji(p.severity)} ${p.name}
+
+- **Pillar:** ${p.pillar} — ${p.pillarName}
+- **Severity:** ${p.severity.charAt(0).toUpperCase() + p.severity.slice(1)}
+- **Occurrences:** ${p.count}
+- **Description:** ${p.description}
+- **Sample Matches:** ${p.matches.slice(0, 8).join(', ')}${p.matches.length > 8 ? '...' : ''}
+
+`;
+          });
+        }
+
+        report += `---
+
+*This report reflects the current lens (v2.2). Revision is normal as understanding evolves.*
+
+---
+
+**Companion books from InspiRational**
+`;
+
+        // Create and download the file
+        const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'OpenSauce_Observation_Report.md';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      };
+
+      const generatePrompt = () => {
+        const sections = [];
+        if (promptComponents.context) {
+          sections.push(`## Context\n${promptComponents.context}`);
+        }
+        sections.push(`## Epistemic Integrity Requirements
+- Clearly distinguish between facts, inferences, and speculation
+- Express uncertainty proportional to evidence strength
+- Cite specific sources for factual claims when possible
+- Acknowledge limitations in knowledge or capability`);
+        if (promptComponents.constraints) {
+          sections.push(`## Constraints\n${promptComponents.constraints}`);
+        }
+        if (promptComponents.verification) {
+          sections.push(`## Verification Protocol\n${promptComponents.verification}`);
+        }
+        sections.push(`## Failure Mode Handling
+${promptComponents.fallback || 'If uncertain or unable to verify, explicitly state limitations rather than confabulating.'}`);
+        return sections.join('\n\n');
+      };
+
+      const getScoreColor = (score) => {
+        if (score >= 80) return '#10b981';
+        if (score >= 60) return '#f59e0b';
+        if (score >= 40) return '#f97316';
+        return '#ef4444';
+      };
+
+      const getSeverityColor = (severity) => {
+        if (severity === 'positive') return '#10b981';
+        if (severity === 'alert') return '#ef4444';
+        if (severity === 'warning') return '#f59e0b';
+        return '#6366f1';
+      };
+
+      const getSeverityBg = (severity) => {
+        if (severity === 'positive') return '#ecfdf5';
+        if (severity === 'alert') return '#fef2f2';
+        if (severity === 'warning') return '#fffbeb';
+        return '#eef2ff';
+      };
+
+      const getSeverityLabel = (severity) => {
+        if (severity === 'positive') return 'Positive';
+        if (severity === 'alert') return 'Alert';
+        if (severity === 'warning') return 'Warning';
+        return 'Info';
+      };
+
+      const styles = {
+        container: {
+          minHeight: '100vh',
+          background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+          color: '#1e293b',
+          fontFamily: '"Inter", -apple-system, sans-serif'
+        },
+        header: {
+          background: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
+          padding: '1rem 2rem',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+        },
+        headerInner: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          maxWidth: '1400px',
+          margin: '0 auto'
+        },
+        logo: {
+          width: '44px',
+          height: '44px',
+          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '22px',
+          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)'
+        },
+        title: {
+          margin: 0,
+          fontSize: '1.35rem',
+          fontWeight: 700,
+          color: '#1e293b',
+          letterSpacing: '-0.02em'
+        },
+        subtitle: {
+          margin: 0,
+          fontSize: '0.75rem',
+          color: '#64748b',
+          fontWeight: 500
+        },
+        nav: {
+          background: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
+          padding: '0 2rem'
+        },
+        navInner: {
+          display: 'flex',
+          gap: '0.5rem',
+          maxWidth: '1400px',
+          margin: '0 auto',
+          overflowX: 'auto'
+        },
+        main: {
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '2rem'
+        },
+        card: {
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '16px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+        },
+        heroGradient: {
+          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+          borderRadius: '20px',
+          padding: '2.5rem',
+          marginBottom: '2rem',
+          color: '#ffffff',
+          boxShadow: '0 10px 40px rgba(99, 102, 241, 0.2)'
+        },
+        button: {
+          padding: '0.875rem 2.5rem',
+          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+          border: 'none',
+          borderRadius: '10px',
+          color: '#fff',
+          fontFamily: 'inherit',
+          fontWeight: 600,
+          cursor: 'pointer',
+          fontSize: '0.9rem',
+          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
+          transition: 'transform 0.2s, box-shadow 0.2s'
+        },
+        buttonSecondary: {
+          padding: '0.75rem 1.5rem',
+          background: '#ffffff',
+          border: '2px solid #e2e8f0',
+          borderRadius: '10px',
+          color: '#6366f1',
+          fontFamily: 'inherit',
+          fontWeight: 600,
+          cursor: 'pointer',
+          fontSize: '0.85rem',
+          transition: 'all 0.2s',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        },
+        footer: {
+          borderTop: '1px solid #e2e8f0',
+          padding: '2rem',
+          marginTop: '4rem',
+          textAlign: 'center',
+          color: '#94a3b8',
+          fontSize: '0.8rem',
+          background: '#ffffff'
+        },
+        prose: {
+          fontFamily: '"Crimson Pro", Georgia, serif',
+          fontSize: '1.1rem',
+          lineHeight: 1.8,
+          color: '#374151'
+        }
+      };
+
+      const NavButton = ({ tab, active, onClick }) => (
+        <button
+          onClick={onClick}
+          style={{
+            background: active ? '#f1f5f9' : 'transparent',
+            border: 'none',
+            borderBottom: active ? '2px solid #6366f1' : '2px solid transparent',
+            color: active ? '#6366f1' : '#64748b',
+            padding: '0.875rem 1.25rem',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s',
+            borderRadius: '8px 8px 0 0',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <span style={{ opacity: 0.7 }}>{tab.icon}</span> {tab.label}
+        </button>
+      );
+
+      return (
+        <div style={styles.container}>
+          <header style={styles.header}>
+            <div style={styles.headerInner}>
+              <div style={styles.logo}>🔧</div>
+              <div>
+                <h1 style={styles.title}>The Workbench</h1>
+                <p style={styles.subtitle}>Epistemic Integrity Tools · v2.2</p>
+              </div>
+            </div>
+          </header>
+
+          <nav style={styles.nav}>
+            <div style={styles.navInner}>
+              {[
+                { id: 'dashboard', label: 'Dashboard', icon: '◈' },
+                { id: 'assessment', label: 'Trust Audit', icon: '◎' },
+                { id: 'forensics', label: 'Forensics', icon: '◉' },
+                { id: 'builder', label: 'Prompt Builder', icon: '◇' },
+                { id: 'about', label: 'About & Methodology', icon: '◆' }
+              ].map(tab => (
+                <NavButton
+                  key={tab.id}
+                  tab={tab}
+                  active={activeTab === tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                />
+              ))}
+            </div>
+          </nav>
+
+          <main style={styles.main}>
+            {/* Dashboard */}
+            {activeTab === 'dashboard' && (
+              <div style={{ animation: 'fadeIn 0.3s ease' }}>
+                <div style={styles.heroGradient}>
+                  <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', fontWeight: 700 }}>
+                    The Wrench Framework
+                  </h2>
+                  <p style={{ margin: 0, lineHeight: 1.7, opacity: 0.9, maxWidth: '700px' }}>
+                    Based on <em>The Wrench: A Forensic Account of Epistemic Trust and Mechanical Failure</em>,
+                    this workbench provides tools for evaluating AI system reliability, identifying failure patterns,
+                    and constructing prompts that maintain structural integrity.
+                  </p>
+                </div>
+
+                <div style={{
+                  ...styles.card,
+                  padding: '1.5rem',
+                  marginBottom: '2rem',
+                  borderLeft: '4px solid #8b5cf6',
+                  background: 'linear-gradient(135deg, #faf5ff 0%, #ffffff 100%)'
+                }}>
+                  <p style={{ ...styles.prose, margin: 0, fontSize: '1rem' }}>
+                    <strong style={{ color: '#6366f1' }}>An Observatory, Not an Oracle.</strong>{' '}
+                    The Workbench is a spyglass — it reveals patterns and surfaces signals that warrant human attention.
+                    It does not render verdicts or declare truth. Like early astronomers peering through primitive lenses
+                    at celestial bodies they could barely resolve, we observe what current methods allow. Tomorrow's
+                    instruments — the Hubble telescopes of epistemic analysis — will see further and clearer.
+                    This tool is a waypoint in that journey, not its destination.
+                  </p>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                  {[
+                    { title: 'Trust Audit', icon: '◎', description: 'Systematic assessment of AI outputs across five key integrity dimensions', tab: 'assessment', color: '#10b981', bg: '#ecfdf5' },
+                    { title: 'Conversation Forensics', icon: '◉', description: 'Pattern analysis to detect confabulation, miscalibration, and failure indicators', tab: 'forensics', color: '#f59e0b', bg: '#fffbeb' },
+                    { title: 'Prompt Integrity Builder', icon: '◇', description: 'Construct prompts designed to maintain epistemic hygiene and reduce failure modes', tab: 'builder', color: '#6366f1', bg: '#eef2ff' },
+                    { title: 'About & Methodology', icon: '◆', description: 'Cross-model validation, version history, and the epistemic foundations of this tool', tab: 'about', color: '#8b5cf6', bg: '#faf5ff' }
+                  ].map((card, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveTab(card.tab)}
+                      style={{
+                        ...styles.card,
+                        padding: '1.75rem',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{
+                        width: '48px',
+                        height: '48px',
+                        background: card.bg,
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '1rem',
+                        color: card.color,
+                        fontSize: '1.25rem',
+                        fontWeight: 600
+                      }}>
+                        {card.icon}
+                      </div>
+                      <h3 style={{ margin: '0 0 0.5rem 0', color: '#1e293b', fontSize: '1.1rem', fontWeight: 600 }}>{card.title}</h3>
+                      <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem', lineHeight: 1.6 }}>{card.description}</p>
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ ...styles.card, marginTop: '2rem', padding: '2rem' }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '0.8rem', color: '#64748b', letterSpacing: '0.08em', fontWeight: 600 }}>
+                    THE FIVE PILLARS OF EPISTEMIC INTEGRITY
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
+                    {assessmentFramework.map((cat, i) => (
+                      <div key={i} style={{
+                        textAlign: 'center',
+                        padding: '1.25rem 0.75rem',
+                        background: '#f8fafc',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0'
+                      }}>
+                        <div style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>{cat.icon}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: 1.4, fontWeight: 500 }}>{cat.category}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Trust Assessment */}
+            {activeTab === 'assessment' && (
+              <div style={{ animation: 'fadeIn 0.3s ease' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                  <div>
+                    <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>Epistemic Trust Audit</h2>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Evaluate AI output across five integrity dimensions</p>
+                  </div>
+                  {trustScore !== null && (
+                    <div style={{ ...styles.card, padding: '1.25rem 2rem', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.25rem', fontWeight: 600, letterSpacing: '0.05em' }}>TRUST SCORE</div>
+                      <div style={{ fontSize: '2.5rem', fontWeight: 700, color: getScoreColor(trustScore) }}>{trustScore}%</div>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {assessmentFramework.map((category, catIndex) => (
+                    <div key={catIndex} style={{ ...styles.card, overflow: 'hidden' }}>
+                      <div style={{
+                        padding: '1.25rem 1.5rem',
+                        background: '#f8fafc',
+                        borderBottom: '1px solid #e2e8f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem'
+                      }}>
+                        <span style={{ fontSize: '1.25rem' }}>{category.icon}</span>
+                        <span style={{ fontWeight: 600, color: '#1e293b' }}>{category.category}</span>
+                      </div>
+                      <div style={{ padding: '0.5rem' }}>
+                        {category.questions.map((q, qIndex) => (
+                          <div key={q.id} style={{
+                            padding: '1.25rem',
+                            borderBottom: qIndex < category.questions.length - 1 ? '1px solid #f1f5f9' : 'none'
+                          }}>
+                            <div style={{ marginBottom: '1rem', color: '#475569', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                              {q.text}
+                              <span style={{
+                                marginLeft: '0.75rem',
+                                fontSize: '0.7rem',
+                                color: '#94a3b8',
+                                background: '#f1f5f9',
+                                padding: '0.2rem 0.5rem',
+                                borderRadius: '6px',
+                                fontWeight: 500
+                              }}>
+                                weight: {q.weight}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              {[
+                                { value: 0, label: 'No' },
+                                { value: 1, label: 'Rarely' },
+                                { value: 2, label: 'Sometimes' },
+                                { value: 3, label: 'Usually' },
+                                { value: 4, label: 'Yes' }
+                              ].map(option => (
+                                <button
+                                  key={option.value}
+                                  onClick={() => setAssessmentAnswers(prev => ({ ...prev, [q.id]: option.value }))}
+                                  style={{
+                                    flex: 1,
+                                    padding: '0.625rem',
+                                    background: assessmentAnswers[q.id] === option.value
+                                      ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                                      : '#f8fafc',
+                                    border: assessmentAnswers[q.id] === option.value ? 'none' : '1px solid #e2e8f0',
+                                    borderRadius: '8px',
+                                    color: assessmentAnswers[q.id] === option.value ? '#fff' : '#64748b',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem',
+                                    fontFamily: 'inherit',
+                                    fontWeight: 500,
+                                    transition: 'all 0.2s'
+                                  }}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {trustScore !== null && (
+                  <div style={{
+                    marginTop: '2rem',
+                    padding: '1.75rem',
+                    ...styles.card,
+                    borderLeft: `4px solid ${getScoreColor(trustScore)}`
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem 0', color: getScoreColor(trustScore), fontWeight: 600 }}>Assessment Summary</h3>
+                    <p style={{ margin: 0, color: '#475569', lineHeight: 1.7 }}>
+                      {trustScore >= 80 && 'High epistemic integrity. The AI demonstrates consistent reliability across all dimensions.'}
+                      {trustScore >= 60 && trustScore < 80 && 'Moderate integrity. Some areas show potential for mechanical failure. Review flagged dimensions.'}
+                      {trustScore >= 40 && trustScore < 60 && 'Concerning patterns detected. Significant epistemic drift or calibration issues present.'}
+                      {trustScore < 40 && 'Critical integrity failure. Exercise extreme caution with outputs from this interaction.'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Forensics */}
+            {activeTab === 'forensics' && (
+              <div style={{ animation: 'fadeIn 0.3s ease' }}>
+                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>Conversation Forensics</h2>
+                <p style={{ margin: '0 0 1rem 0', color: '#64748b', fontSize: '0.9rem' }}>Paste AI conversation text to analyze for failure patterns</p>
+
+                {/* Granularity Mode Selector */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.9rem', color: '#1e293b', fontWeight: 600 }}>
+                    Analysis Mode:
+                  </label>
+                  <select
+                    value={selectedMode}
+                    onChange={(e) => setSelectedMode(e.target.value)}
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '0.75rem 1rem',
+                      color: '#1e293b',
+                      fontFamily: 'inherit',
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      outline: 'none',
+                      transition: 'border-color 0.2s, box-shadow 0.2s',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                      backgroundImage: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text'
+                    }}
+                  >
+                    {Object.keys(granularityModes).map(mode => (
+                      <option key={mode} value={mode} style={{ color: '#1e293b', background: '#ffffff' }}>
+                        {mode}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{
+                  background: '#fefce8',
+                  border: '1px solid #fef08a',
+                  borderRadius: '10px',
+                  padding: '1rem',
+                  marginBottom: '1.5rem',
+                  fontSize: '0.85rem',
+                  color: '#854d0e'
+                }}>
+                  <strong>No Verdict Principle:</strong> {granularityModes[selectedMode].bannerText}
+                </div>
+
+                <div style={{ ...styles.card, padding: '1.75rem', marginBottom: '1.5rem' }}>
+                  <textarea
+                    value={conversationText}
+                    onChange={(e) => setConversationText(e.target.value)}
+                    placeholder={granularityModes[selectedMode].placeholder}
+                    style={{
+                      width: '100%',
+                      minHeight: '200px',
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '1rem',
+                      color: '#1e293b',
+                      fontFamily: '"JetBrains Mono", monospace',
+                      fontSize: '0.9rem',
+                      resize: 'vertical',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                  />
+                  <button onClick={runForensics} style={{ ...styles.button, marginTop: '1rem' }}>
+                    Run Forensic Analysis
+                  </button>
+                </div>
+
+                {forensicsResults && (
+                  <div style={{ animation: 'fadeIn 0.3s ease' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <div style={{ ...styles.card, padding: '1.25rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.5rem', fontWeight: 600, letterSpacing: '0.05em' }}>WORD COUNT</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>{forensicsResults.wordCount}</div>
+                      </div>
+                      <div style={{ ...styles.card, padding: '1.25rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.5rem', fontWeight: 600, letterSpacing: '0.05em' }}>PATTERNS FOUND</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>{forensicsResults.patterns.length}</div>
+                      </div>
+                      <div style={{
+                        ...styles.card,
+                        padding: '1.25rem',
+                        textAlign: 'center',
+                        border: `2px solid ${getScoreColor(100 - forensicsResults.riskScore)}`
+                      }}>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.5rem', fontWeight: 600, letterSpacing: '0.05em' }}>ATTENTION SCORE</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: getScoreColor(100 - forensicsResults.riskScore) }}>
+                          {forensicsResults.riskScore}/100
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ ...styles.card, overflow: 'hidden' }}>
+                      <div style={{ padding: '1.25rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        <span style={{ fontWeight: 600, color: '#1e293b' }}>Detected Patterns</span>
+                      </div>
+                      {forensicsResults.patterns.length === 0 ? (
+                        <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>✓ No notable patterns detected</div>
+                      ) : (
+                        forensicsResults.patterns.map((pattern, i) => (
+                          <div key={i} style={{
+                            padding: '1.25rem 1.5rem',
+                            borderBottom: i < forensicsResults.patterns.length - 1 ? '1px solid #f1f5f9' : 'none'
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: getSeverityColor(pattern.severity) }} />
+                                <span style={{ fontWeight: 600, color: '#1e293b' }}>{pattern.name}</span>
+                                {pattern.version === '2.0' && (
+                                  <span style={{ fontSize: '0.65rem', background: '#ddd6fe', color: '#6d28d9', padding: '0.15rem 0.5rem', borderRadius: '10px', fontWeight: 600 }}>NEW</span>
+                                )}
+                              </div>
+                              <span style={{
+                                background: getSeverityBg(pattern.severity),
+                                color: getSeverityColor(pattern.severity),
+                                padding: '0.35rem 0.875rem',
+                                borderRadius: '20px',
+                                fontSize: '0.75rem',
+                                fontWeight: 600
+                              }}>
+                                {pattern.count} · {getSeverityLabel(pattern.severity)}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#8b5cf6', marginBottom: '0.5rem' }}>
+                              Pillar {pattern.pillar}: {pattern.pillarName}
+                            </div>
+                            <p style={{ margin: '0 0 0.75rem 0', color: '#64748b', fontSize: '0.9rem' }}>
+                              {granularityModes[selectedMode].patternExamples[pattern.name] || pattern.description}
+                            </p>
+                            <div style={{
+                              background: '#f8fafc',
+                              padding: '0.75rem 1rem',
+                              borderRadius: '8px',
+                              fontSize: '0.8rem',
+                              color: '#64748b',
+                              fontFamily: '"JetBrains Mono", monospace'
+                            }}>
+                              Matches: {pattern.matches.slice(0, 5).join(', ')}{pattern.matches.length > 5 ? '...' : ''}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Export Report Button - appears only after analysis */}
+                    <div style={{
+                      ...styles.card,
+                      padding: '1.5rem',
+                      marginTop: '1.5rem',
+                      borderLeft: '4px solid #8b5cf6',
+                      background: 'linear-gradient(135deg, #faf5ff 0%, #ffffff 100%)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                          <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', color: '#1e293b', fontWeight: 600 }}>
+                            Export Observation Report
+                          </h4>
+                          <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+                            Download analysis with epistemic context and detected patterns
+                          </p>
+                        </div>
+                        <button
+                          onClick={exportObservationReport}
+                          style={styles.buttonSecondary}
+                        >
+                          <span>📄</span> Download Report (.md)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Prompt Builder */}
+            {activeTab === 'builder' && (
+              <div style={{ animation: 'fadeIn 0.3s ease' }}>
+                <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>Prompt Integrity Builder</h2>
+                <p style={{ margin: '0 0 2rem 0', color: '#64748b', fontSize: '0.9rem' }}>Construct prompts designed to maintain epistemic hygiene</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {[
+                      { key: 'context', label: 'Context & Background', placeholder: 'Describe the task context and relevant background information...' },
+                      { key: 'constraints', label: 'Specific Constraints', placeholder: 'Define boundaries, limitations, or requirements...' },
+                      { key: 'verification', label: 'Verification Requirements', placeholder: 'Specify how claims should be verified or sourced...' },
+                      { key: 'fallback', label: 'Failure Mode Handling', placeholder: 'Define behavior when uncertain or unable to verify...' }
+                    ].map(field => (
+                      <div key={field.key} style={{ ...styles.card, padding: '1.25rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.9rem', color: '#1e293b', fontWeight: 600 }}>
+                          {field.label}
+                        </label>
+                        <textarea
+                          value={promptComponents[field.key]}
+                          onChange={(e) => setPromptComponents(prev => ({ ...prev, [field.key]: e.target.value }))}
+                          placeholder={field.placeholder}
+                          style={{
+                            width: '100%',
+                            minHeight: '80px',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            padding: '0.875rem',
+                            color: '#1e293b',
+                            fontFamily: 'inherit',
+                            fontSize: '0.9rem',
+                            resize: 'vertical',
+                            outline: 'none',
+                            transition: 'border-color 0.2s'
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ ...styles.card, padding: '1.5rem', position: 'sticky', top: '2rem', height: 'fit-content' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <span style={{ fontWeight: 600, color: '#6366f1' }}>Generated Prompt</span>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(generatePrompt())}
+                        style={{
+                          background: '#f1f5f9',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          padding: '0.5rem 1rem',
+                          color: '#64748b',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                          fontFamily: 'inherit',
+                          fontWeight: 500,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <pre style={{
+                      background: '#f8fafc',
+                      borderRadius: '10px',
+                      padding: '1.25rem',
+                      margin: 0,
+                      fontSize: '0.8rem',
+                      lineHeight: 1.7,
+                      color: '#475569',
+                      whiteSpace: 'pre-wrap',
+                      maxHeight: '500px',
+                      overflow: 'auto',
+                      border: '1px solid #e2e8f0',
+                      fontFamily: '"JetBrains Mono", monospace'
+                    }}>
+                      {generatePrompt()}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* About & Methodology */}
+            {activeTab === 'about' && (
+              <div style={{ animation: 'fadeIn 0.3s ease', maxWidth: '900px' }}>
+                <h2 style={{ margin: '0 0 2rem 0', fontSize: '1.75rem', fontWeight: 700, color: '#1e293b' }}>About & Methodology</h2>
+
+                {/* Canonical Epistemic Text */}
+                <div style={{ ...styles.card, padding: '2rem', marginBottom: '2rem' }}>
+                  <h3 style={{ margin: '0 0 1.25rem 0', color: '#1e293b', fontSize: '1.2rem', fontWeight: 700 }}>What "Epistemic" Means (In Plain Terms)</h3>
+                  <p style={{ ...styles.prose, marginBottom: '1.25rem' }}>
+                    Most people have never heard the word <em>epistemic</em>, and that's fine — it simply has to do with knowledge: how it's formed, how we come to rely on it, and how it changes as new information becomes available. Knowledge isn't fixed; we learn, and that learning changes the knowledge we act on. Think of a map or navigation app: this year it shows the roads and neighborhoods that exist today. Next year there may be new streets, new areas, or better data. The earlier map may have been accurate, incomplete, outdated, or even wrong — but in any case, it reflected what was known at the time. As conditions change, the picture needs to change too. An epistemic system respects that process. It doesn't freeze knowledge in place or skew the picture for convenience or engagement; it preserves how understanding evolves, so people can see what they're actually relying on.
+                  </p>
+
+                  <h4 style={{ margin: '1.5rem 0 1rem 0', color: '#64748b', fontSize: '0.95rem', fontWeight: 600 }}>Self-Applying Disclaimer</h4>
+                  <p style={{ ...styles.prose, marginBottom: '1.25rem', color: '#64748b', fontSize: '1rem' }}>
+                    <strong>Disclaimer:</strong> This explanation follows the same rules it describes. It reflects the best understanding available through the lenses we're using right now. As new perspectives emerge, better tools are applied, or previously missed information comes into view, this framing may change. Even a spyglass can introduce distortion — a scratch, a misalignment, a few degrees off — not enough to notice at first, but enough to shift the path over distance. That doesn't invalidate the view; it reminds us to keep checking the lens.
+                  </p>
+
+                  <p style={{ ...styles.prose, marginBottom: '1.25rem' }}>
+                    In short: Knowledge depends on perspective and tools. When either changes, the picture can sharpen, shift, or correct itself — and systems that handle knowledge must allow for that movement.
+                  </p>
+
+                  <p style={{
+                    ...styles.prose,
+                    marginBottom: '1rem',
+                    padding: '1rem',
+                    background: '#faf5ff',
+                    borderLeft: '4px solid #8b5cf6',
+                    borderRadius: '0 8px 8px 0',
+                    fontWeight: 600
+                  }}>
+                    An epistemic system that does not allow revision of its own framing is no longer epistemic.
+                  </p>
+
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                    This section reflects the current lens and is open to revision via community contributions.
+                  </p>
+                </div>
+
+                {/* Observatory Statement */}
+                <div style={{
+                  ...styles.card,
+                  padding: '2rem',
+                  marginBottom: '2rem',
+                  borderLeft: '4px solid #8b5cf6',
+                  background: 'linear-gradient(135deg, #faf5ff 0%, #ffffff 100%)'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', color: '#6366f1', fontSize: '1.1rem' }}>An Observatory, Not an Oracle</h3>
+                  <p style={{ ...styles.prose, margin: 0 }}>
+                    The Workbench is a spyglass — it reveals patterns and surfaces signals that warrant human attention.
+                    It does not render verdicts or declare truth. Like early astronomers peering through primitive lenses
+                    at celestial bodies they could barely resolve, we observe what current methods allow.
+                  </p>
+                  <p style={{ ...styles.prose, margin: '1rem 0 0 0' }}>
+                    Tomorrow's instruments — the Hubble telescopes of epistemic analysis — will see further and clearer.
+                    This tool is a waypoint in that journey, not its destination. Use it to look, not to conclude.
+                  </p>
+                </div>
+
+                {/* Cross-Model Validation */}
+                <div style={{ ...styles.card, padding: '2rem', marginBottom: '2rem' }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', color: '#1e293b', fontSize: '1.1rem' }}>Cross-Model Validation</h3>
+                  <p style={{ ...styles.prose, marginBottom: '1.5rem' }}>
+                    The forensic patterns in this tool were independently validated by three AI systems:
+                    <strong> Claude</strong> (Anthropic), <strong>ChatGPT</strong> (OpenAI), and <strong>Grok</strong> (xAI).
+                    This triangulation approach — using AI to audit AI analysis methods — produced consensus on validity
+                    and surfaced improvements now implemented in v2.0.
+                  </p>
+
+                  <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '1.5rem', marginBottom: '1.5rem' }}>
+                    <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}>CONSENSUS FINDINGS</h4>
+                    <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#475569', lineHeight: 1.8 }}>
+                      <li>All six original patterns validated as <strong>legitimate epistemic symptom detectors</strong></li>
+                      <li>Pillar mappings confirmed as <strong>mostly correct</strong> with one adjustment</li>
+                      <li>Pillar 4 (Structural Coherence) identified as the <strong>primary gap</strong> requiring new patterns</li>
+                      <li>False positive risks assessed as <strong>manageable with context weighting</strong></li>
+                      <li>Framework described as <em>"legitimate epistemic instrumentation, not AI safety theater"</em></li>
+                    </ul>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                    {[
+                      { name: 'Claude', org: 'Anthropic', role: 'Framework architect, pattern design, implementation' },
+                      { name: 'ChatGPT', org: 'OpenAI', role: 'Validation, pillar remap, vector analysis proposal' },
+                      { name: 'Grok', org: 'xAI', role: 'Validation, positive pattern proposal, benchmark suggestions' }
+                    ].map((ai, i) => (
+                      <div key={i} style={{ background: '#f8fafc', borderRadius: '10px', padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '0.25rem' }}>{ai.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#8b5cf6', marginBottom: '0.5rem' }}>{ai.org}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.4 }}>{ai.role}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Version History */}
+                <div style={{ ...styles.card, padding: '2rem', marginBottom: '2rem' }}>
+                  <h3 style={{ margin: '0 0 1.5rem 0', color: '#1e293b', fontSize: '1.1rem' }}>Version History</h3>
+
+                  <div style={{ borderLeft: '2px solid #e2e8f0', paddingLeft: '1.5rem' }}>
+                    <div style={{ marginBottom: '2rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <span style={{ background: '#6366f1', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>v2.2</span>
+                        <span style={{ color: '#64748b', fontSize: '0.85rem' }}>January 2026</span>
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#475569', lineHeight: 1.8 }}>
+                        <li>v2.2: Added granularity modes (AI, Politics, Media)</li>
+                        <li>Domain-specific pattern descriptions and contextual examples</li>
+                        <li>Tailored placeholder text and "No Verdict Principle" messaging per mode</li>
+                      </ul>
+                    </div>
+
+                    <div style={{ marginBottom: '2rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <span style={{ background: '#8b5cf6', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>v2.1</span>
+                        <span style={{ color: '#64748b', fontSize: '0.85rem' }}>January 2026</span>
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#475569', lineHeight: 1.8 }}>
+                        <li>Added <strong>canonical epistemic definition</strong> with self-applying disclaimer</li>
+                        <li>Clarified that the doctrine is <strong>open to revision</strong> via community input</li>
+                        <li>Added <strong>Export Observation Report</strong> feature (Markdown download)</li>
+                      </ul>
+                    </div>
+
+                    <div style={{ marginBottom: '2rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <span style={{ background: '#f59e0b', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>v2.0</span>
+                        <span style={{ color: '#64748b', fontSize: '0.85rem' }}>January 2025</span>
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#475569', lineHeight: 1.8 }}>
+                        <li>Renamed "Hallucination Indicators" → <strong>"Failure-Mode Disclosure"</strong> (positive behavior, not failure)</li>
+                        <li>Added <strong>four Pillar 4 patterns</strong>: Conclusion Precedes Argument, Non-Sequitur Risk, Scope Slippage, Circular Reasoning Risk</li>
+                        <li>Added <strong>pillar attribution</strong> to all forensic patterns</li>
+                        <li>Implemented <strong>"No Verdict" principle</strong> in UI messaging</li>
+                        <li>Added <strong>positive severity type</strong> for healthy epistemic behaviors</li>
+                        <li>Added <strong>About & Methodology</strong> section with validation documentation</li>
+                        <li>Renamed "Risk Score" → <strong>"Attention Score"</strong> to reflect observational nature</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <span style={{ background: '#94a3b8', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>v1.0</span>
+                        <span style={{ color: '#64748b', fontSize: '0.85rem' }}>January 2025</span>
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#475569', lineHeight: 1.8 }}>
+                        <li>Initial release with Trust Audit, Forensics, and Prompt Builder modules</li>
+                        <li>Six forensic patterns covering Pillars 1, 2, 3, and 5</li>
+                        <li>Five-pillar assessment framework based on S.A.U.C.E. Doctrine</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Foundation */}
+                <div style={{ ...styles.card, padding: '2rem' }}>
+                  <h3 style={{ margin: '0 0 1rem 0', color: '#1e293b', fontSize: '1.1rem' }}>Foundation</h3>
+                  <p style={{ ...styles.prose, margin: '0 0 1rem 0' }}>
+                    The Workbench is a companion tool to <em>The Wrench: A Forensic Account of Epistemic Trust
+                    and Mechanical Failure</em>, built on the OpenSauce S.A.U.C.E. Doctrine framework.
+                  </p>
+                  <p style={{ ...styles.prose, margin: 0 }}>
+                    <strong>S.A.U.C.E.</strong> — Structurally Accountable, Uncertainty-Calibrated Epistemics —
+                    defines the five pillars against which this tool evaluates AI outputs: Consistency Verification,
+                    Uncertainty Calibration, Source Integrity, Structural Coherence, and Failure Mode Awareness.
+                  </p>
+                </div>
+              </div>
+            )}
+          </main>
+
+          <footer style={styles.footer}>
+            Based on <em style={{ color: '#64748b' }}>The Wrench: A Forensic Account of Epistemic Trust and Mechanical Failure</em>
+            <br />
+            <a href="https://opensauce.ai" style={{ color: '#6366f1', fontWeight: 500, textDecoration: 'none' }}>OpenSauce S.A.U.C.E. Doctrine</a>
+            <span style={{ margin: '0 0.5rem', color: '#cbd5e1' }}>·</span>
+            <span style={{ color: '#94a3b8' }}>v2.2</span>
+          </footer>
+        </div>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<WrenchWorkbench />);
+  </script>
+</body>
+</html>
