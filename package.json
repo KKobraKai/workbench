@@ -1,0 +1,18 @@
+{
+  "name": "workbench-web",
+  "version": "2.1.0",
+  "description": "Epistemic Integrity Tools - OpenSauce Workbench",
+  "main": "index.html",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-markdown": "^9.0.0",
+    "remark-gfm": "^4.0.0"
+  },
+  "scripts": {
+    "start": "python -m http.server 8000"
+  },
+  "keywords": ["epistemic", "integrity", "ai", "analysis"],
+  "author": "OpenSauce",
+  "license": "MIT"
+}
