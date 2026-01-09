@@ -8,3 +8,8 @@ Fixed GitHub Pages rendering: Added base: '/workbench/' to vite.config.js (commi
 Rebuilt and verified production preview locally
 Pushed to main — GitHub Pages redeploy triggered with correct asset paths
 Public URLs expected to render correctly after propagation
+
+- Built and committed dist/ for live GitHub Pages deployment
+- Production build verified locally on preview server
+- Pushed to main — GitHub Pages redeploy triggered with static files
+- Public rendering expected within 5–15 minutes

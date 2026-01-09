@@ -37,6 +37,11 @@
 - **Acceptance Criteria**: LOG.md exists with header and recent append, committed
 - **Status**: completed
 
+### TASK_DEPLOY_PRODUCTION_BUILD_V0_1
+- **Goal**: Generate and commit dist/ for GitHub Pages static serving
+- **Acceptance Criteria**: dist/ committed, build verified, pushed to main
+- **Status**: completed
+
 ## Active Tasks
 
 ### TASK_FIX_REACT_MODULE_LOADING_V0_1
