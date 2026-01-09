@@ -33,3 +33,6 @@ Public URLs expected to render correctly after propagation
 - Fresh build generated to docs
 - .nojekyll added (if applicable)
 - Committed + pushed
+- Merged pudding-check-mvp-clean into main
+- Pushed merged main to origin/main
+- Added docs/.nojekyll and committed

@@ -52,6 +52,13 @@ Vite builds to docs/
 
 base path must remain /workbench/
 
+### How to build + deploy to Pages
+1. Ensure vite.config.js has base: '/workbench/' and build.outDir: 'docs'
+2. Run: npm install && npm run build
+3. Ensure docs/.nojekyll exists (empty file)
+4. Commit and push docs/ folder to main branch
+5. GitHub Pages will auto-deploy from main/docs
+
 ## Local Dev (Canonical - Verified)
 
 **Commands:**
