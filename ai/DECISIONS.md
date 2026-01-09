@@ -29,6 +29,9 @@ Reports stored as JSON files conforming to Observation Report Schema v0.1. URL p
 ### Dev runtime uses Vite; canonical share links use query params (?tab=midterm&report=...)
 Vite replaces static Python server for proper React/TSX compilation. Share links use query parameters instead of paths for static hosting compatibility.
 
+### GitHub Pages deploy source is /docs (not root)
+Build output published to /docs folder for GitHub Pages compatibility. Prevents Jekyll interference and ensures correct asset serving.
+
 ### Governance Ceiling Principle (Established Jan 9, 2026)
 
 Add structure only to prevent repeated costly failures.

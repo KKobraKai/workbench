@@ -45,6 +45,13 @@ OpenSauce Workbench — Epistemic Observatory. Core features: Pudding Check, Mid
 - Desktop verified: localhost:8000 ✓
 - Production verified: preview server ✓
 
+## Deployment
+GitHub Pages must be configured to deploy from main /docs
+
+Vite builds to docs/
+
+base path must remain /workbench/
+
 ## Local Dev (Canonical - Verified)
 
 **Commands:**

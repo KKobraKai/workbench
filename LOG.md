@@ -28,3 +28,8 @@ Public URLs expected to render correctly after propagation
 - Added docs/.nojekyll to prevent Jekyll interference
 - Built and committed docs/ with correct /workbench/ base path assets
 - Updated STATE.md: Pages deploy from main/docs folder
+
+- Updated Vite outDir to docs, base path confirmed
+- Fresh build generated to docs
+- .nojekyll added (if applicable)
+- Committed + pushed
