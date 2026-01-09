@@ -13,3 +13,8 @@ Public URLs expected to render correctly after propagation
 - Production build verified locally on preview server
 - Pushed to main — GitHub Pages redeploy triggered with static files
 - Public rendering expected within 5–15 minutes
+
+- Rebuilt production dist/ with current base path configuration
+- Fresh build verified locally — app renders correctly without white screen
+- Confirmed /workbench/ base paths in built assets
+- No changes needed — current dist/ already has correct base path assets

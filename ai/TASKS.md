@@ -42,6 +42,11 @@
 - **Acceptance Criteria**: dist/ committed, build verified, pushed to main
 - **Status**: completed
 
+### TASK_REBUILD_PRODUCTION_DIST_V0_1
+- **Goal**: Rebuild production dist/ with current base path and commit fresh assets
+- **Acceptance Criteria**: Fresh npm run build executed, preview verified, dist/ confirmed correct
+- **Status**: completed
+
 ## Active Tasks
 
 ### TASK_FIX_REACT_MODULE_LOADING_V0_1
