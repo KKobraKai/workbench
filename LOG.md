@@ -22,3 +22,9 @@ Public URLs expected to render correctly after propagation
 - Added GitHub Actions workflow (.github/workflows/deploy.yml) for auto-build/deploy to gh-pages
 - Triggers on main push, builds dist/, deploys to Pages root
 - Pages should now serve built app correctly after first run
+
+- Switched build output from dist/ to docs/ for GitHub Pages compatibility
+- Updated vite.config.js build.outDir to 'docs'
+- Added docs/.nojekyll to prevent Jekyll interference
+- Built and committed docs/ with correct /workbench/ base path assets
+- Updated STATE.md: Pages deploy from main/docs folder

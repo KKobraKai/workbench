@@ -53,3 +53,11 @@ Append-only record of executions. Contains commit hashes and actions only. No sp
 - Role boundaries now explicit: Kai decides, Viggo engineers prompts, HP executes
 - Deployment prep: Moved reports from /reports/ to /public/reports/
 - ObservationReportViewer: Updated fetch path to absolute reference (/reports/)
+- Production build verified: localhost:8001 - all reports load correctly ✓
+- Git commit: 9efc670
+- Pushed to GitHub: main branch
+- Ready for GitHub Pages deployment (manual step)
+Fixed GitHub Pages rendering: Added base: '/workbench/' to vite.config.js
+Rebuilt and verified production preview locally
+Pushed to main — GitHub Pages should redeploy with correct asset paths
+Public URLs expected to render correctly after cache/redeploy
