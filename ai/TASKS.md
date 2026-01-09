@@ -32,6 +32,11 @@
 - **Acceptance Criteria**: /ai/templates/TASK_PROMPT_TEMPLATE.md exists with structure, checklist, and examples
 - **Status**: completed
 
+### TASK_RESTORE_LOG_MD_V0_1
+- **Goal**: Restore missing LOG.md and append base path fix record
+- **Acceptance Criteria**: LOG.md exists with header and recent append, committed
+- **Status**: completed
+
 ## Active Tasks
 
 ### TASK_FIX_REACT_MODULE_LOADING_V0_1
@@ -83,6 +88,16 @@
 - **Acceptance Criteria**: All historical blockers categorized (if any exist)
 - **Status**: pending
 - **Priority**: Low (retrospective cleanup)
+
+### TASK_DEPLOY_PRODUCTION_TO_GITHUB_V0_1
+- **Goal**: Commit and push production-ready code to GitHub for Pages deployment
+- **Acceptance Criteria**: Code pushed to GitHub main branch with commit hash, LOG.md and STATE.md updated with deployment status
+- **Status**: completed
+
+### TASK_FIX_GITHUB_PAGES_BASE_PATH_V0_1
+- **Goal**: Add Vite base path configuration for GitHub Pages subdirectory deployment
+- **Acceptance Criteria**: vite.config.js contains base: '/workbench/', production build verified, pushed to GitHub main
+- **Status**: completed
 
 ### Automation
 - **Goal**: Backend infrastructure for live claim analysis
