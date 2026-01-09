@@ -36,10 +36,12 @@ OpenSauce Workbench — Epistemic Observatory. Core features: Pudding Check, Mid
 
 ## Deployment Status
 - Production build: Tested and verified working
-- Reports location: /public/reports/ (included in dist/ during build)
-- Build command: `npm run build`
+- Reports location: /public/reports/ (included in docs/ during build)
+- Build command: `npm run build` (outputs to docs/)
 - Preview command: `npm run preview`
-- Ready for: GitHub Pages deployment
+- Deployed to: GitHub (commit: 9efc670)
+- GitHub Pages: Deploy from branch main /docs folder
+- Base path: /workbench/ (configured in vite.config.js)
 - Desktop verified: localhost:8000 ✓
 - Production verified: preview server ✓
 

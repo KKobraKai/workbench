@@ -1,0 +1,93 @@
+{
+  "report_metadata": {
+    "schema_version": "v0.1",
+    "generated_at": "2026-01-08T07:30:00Z",
+    "domain": "ai",
+    "scope": {
+      "timeframe": "December 2025",
+      "description": "AI conversation analysis session"
+    }
+  },
+  "current_claim": {
+    "claim_text": "This breakthrough discovery in quantum computing was made in 2023",
+    "source": "AI conversation response",
+    "date": "2025-12-15",
+    "rhetorical_signals": ["definitive claim", "specific date reference"]
+  },
+  "timeline": [
+    {
+      "date": "2025-12-15T10:00:00Z",
+      "type": "statement",
+      "description": "User query about quantum computing advances",
+      "context": "Research question posed to AI system",
+      "source_reference": "Conversation log",
+      "signals": ["research inquiry", "technical topic"]
+    },
+    {
+      "date": "2025-12-15T10:00:05Z",
+      "type": "statement",
+      "description": "AI response claiming 2023 breakthrough discovery",
+      "context": "Generated answer to user query",
+      "source_reference": "AI system output",
+      "signals": ["factual claim", "date specificity"]
+    },
+    {
+      "date": "2025-12-15T10:05:00Z",
+      "type": "action",
+      "description": "User followed up asking for source citation",
+      "context": "Clarification request",
+      "source_reference": "Conversation log",
+      "signals": ["verification request", "source inquiry"]
+    },
+    {
+      "date": "2025-12-15T10:05:10Z",
+      "type": "statement",
+      "description": "AI response provided general reference without specific source",
+      "context": "Follow-up answer",
+      "source_reference": "AI system output",
+      "signals": ["vague citation", "general reference"]
+    },
+    {
+      "date": "2025-12-15T10:10:00Z",
+      "type": "outcome",
+      "description": "Independent verification found no such breakthrough in 2023 records",
+      "context": "External fact-checking",
+      "source_reference": "Scientific literature database",
+      "signals": ["verification result", "record absence"]
+    }
+  ],
+  "patterns": [
+    {
+      "pattern_type": "fabrication risk phrases",
+      "description": "Specific date references appear without verifiable sources",
+      "supporting_timeline_entries": [1],
+      "support_strength": 0.2
+    },
+    {
+      "pattern_type": "citation vacuum",
+      "description": "Factual claims made without specific source references",
+      "supporting_timeline_entries": [1, 3],
+      "support_strength": 0.4
+    }
+  ],
+  "metadata": {
+    "sources_checked": 8,
+    "is_demo": true,
+    "notes": "This is a demonstration report using fictional but realistic AI conversation data",
+    "data_gaps": [
+      "Access to AI system training data",
+      "Internal AI reasoning process logs"
+    ]
+  },
+  "source_count_by_tier": {
+    "primary_conversation": 1,
+    "secondary_verification": 5,
+    "academic_database": 2
+  },
+  "coverage_estimate": 0.65,
+  "data_gaps": [
+    "AI system internal knowledge base",
+    "Training data composition details",
+    "Model update history"
+  ]
+}

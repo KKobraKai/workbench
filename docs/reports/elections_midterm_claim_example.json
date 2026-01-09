@@ -1,0 +1,93 @@
+{
+  "report_metadata": {
+    "schema_version": "v0.1",
+    "generated_at": "2026-01-08T07:30:00Z",
+    "domain": "elections",
+    "scope": {
+      "timeframe": "October 2025 - December 2025",
+      "description": "Midterm election campaign period"
+    }
+  },
+  "current_claim": {
+    "claim_text": "Republican candidates are gaining significant ground in key battleground states",
+    "source": "Campaign press release",
+    "date": "2025-11-15",
+    "rhetorical_signals": ["definitive language", "quantitative claims"]
+  },
+  "timeline": [
+    {
+      "date": "2025-10-01",
+      "type": "statement",
+      "description": "Initial campaign announcement made",
+      "context": "Opening of midterm election season",
+      "source_reference": "Official campaign website",
+      "signals": ["campaign launch rhetoric"]
+    },
+    {
+      "date": "2025-10-15",
+      "type": "action",
+      "description": "Campaign rally held in Pennsylvania",
+      "context": "Battleground state event",
+      "source_reference": "Local news coverage",
+      "signals": ["public event", "crowd attendance"]
+    },
+    {
+      "date": "2025-11-01",
+      "type": "outcome",
+      "description": "Internal polling showed 8-point lead",
+      "context": "Private campaign data",
+      "source_reference": "Campaign internal memo",
+      "signals": ["polling data", "lead measurement"]
+    },
+    {
+      "date": "2025-11-15",
+      "type": "statement",
+      "description": "Press release issued claiming significant gains",
+      "context": "Mid-campaign assessment",
+      "source_reference": "Campaign press release",
+      "signals": ["progress claim", "battleground focus"]
+    },
+    {
+      "date": "2025-12-01",
+      "type": "outcome",
+      "description": "Election results showed 3-point loss in Pennsylvania",
+      "context": "Official election returns",
+      "source_reference": "State election board",
+      "signals": ["election outcome", "margin measurement"]
+    }
+  ],
+  "patterns": [
+    {
+      "pattern_type": "campaign momentum narrative",
+      "description": "Claims of electoral progress appear throughout campaign timeline",
+      "supporting_timeline_entries": [0, 2, 3],
+      "support_strength": 0.6
+    },
+    {
+      "pattern_type": "rhetorical escalation",
+      "description": "Language intensity increases from neutral to definitive over time",
+      "supporting_timeline_entries": [0, 3],
+      "support_strength": 0.4
+    }
+  ],
+  "metadata": {
+    "sources_checked": 12,
+    "is_demo": true,
+    "notes": "This is a demonstration report using fictional but realistic election campaign data",
+    "data_gaps": [
+      "Limited access to opponent campaign internal communications",
+      "Some local event attendance figures not independently verified"
+    ]
+  },
+  "source_count_by_tier": {
+    "primary_official": 3,
+    "secondary_news": 5,
+    "campaign_materials": 4
+  },
+  "coverage_estimate": 0.75,
+  "data_gaps": [
+    "Opponent campaign internal strategy documents",
+    "Detailed voter turnout analysis",
+    "Social media engagement metrics"
+  ]
+}
