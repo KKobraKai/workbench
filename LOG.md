@@ -18,3 +18,7 @@ Public URLs expected to render correctly after propagation
 - Fresh build verified locally — app renders correctly without white screen
 - Confirmed /workbench/ base paths in built assets
 - No changes needed — current dist/ already has correct base path assets
+
+- Added GitHub Actions workflow (.github/workflows/deploy.yml) for auto-build/deploy to gh-pages
+- Triggers on main push, builds dist/, deploys to Pages root
+- Pages should now serve built app correctly after first run

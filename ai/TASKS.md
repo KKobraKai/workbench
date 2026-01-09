@@ -47,6 +47,11 @@
 - **Acceptance Criteria**: Fresh npm run build executed, preview verified, dist/ confirmed correct
 - **Status**: completed
 
+### TASK_ADD_PAGES_WORKFLOW_V0_1
+- **Goal**: Add Actions workflow to auto-deploy Vite build to GitHub Pages
+- **Acceptance Criteria**: Workflow file committed, pushed; Actions tab shows run on push
+- **Status**: completed
+
 ## Active Tasks
 
 ### TASK_FIX_REACT_MODULE_LOADING_V0_1
